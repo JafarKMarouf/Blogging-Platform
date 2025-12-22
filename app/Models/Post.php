@@ -14,7 +14,7 @@ class Post extends Model
         'published_at' => 'datetime',
     ];
 
-    protected $hidden = ['id', 'author_id', 'category_id', 'created_at', 'updated_at'];
+    protected $hidden = ['author_id', 'category_id', 'created_at', 'updated_at'];
 
     /**
      * @return BelongsTo

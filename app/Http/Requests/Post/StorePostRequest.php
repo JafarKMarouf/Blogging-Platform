@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Category;
+namespace App\Http\Requests\Post;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class UpdateCategoryRequest extends FormRequest
+class StorePostRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,25 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
+            'title' => ['required', 'string', 'max:255'],
+            'content' => ['required', 'string'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'author_id' => ['required', 'exists:authors,id'],
+            'published_at' => ['nullable', 'datetime'],
+        ];
+    }
+
+
+    /**
+     * @return string[]
+     */
+    public function messages(): array
+    {
+        return [
+            'title.required' => 'The category title field is required.',
+            'content.required' => 'The category content field is required.',
+            'category_id.required' => 'The category id field is required.',
+            'author_id.required' => 'The author id field is required.',
         ];
     }
 

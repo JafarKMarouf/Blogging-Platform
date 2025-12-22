@@ -1,8 +1,12 @@
 <?php
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,5 +19,30 @@ return Application::configure(basePath: dirname(__DIR__))
 
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($request->is('api/*') || $request->wantsJson()) {
 
+                $message = 'The requested route could not be found.';
+                if ($e->getPrevious() instanceof ModelNotFoundException) {
+                    $message = 'No query results for model.';
+                }
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $message,
+                    'data' => [],
+                ], 404);
+            }
+        });
+        $exceptions->render(function (QueryException $e, Request $request) {
+            if ($request->is('api/*')) {
+                if ($e->getCode() === '23000') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Cannot delete this record because it is referenced by other data.',
+                        'data' => [],
+                    ], 409);
+                }
+            }
+        });
     })->create();

@@ -15,7 +15,7 @@ class CategoryController extends Controller
     public function index(): JsonResponse
     {
         $categories = Category::query()
-            ->select('name')
+            ->select(['id', 'name'])
             ->latest()
             ->get();
         return response()->json([
@@ -25,20 +25,12 @@ class CategoryController extends Controller
     }
 
     /**
-     * @param int $categoryId
+     * @param Category $category
      * @return JsonResponse
      */
-    public function show(int $categoryId): JsonResponse
+    public function show(Category $category): JsonResponse
     {
-        $category = Category::query()
-            ->select('name')
-            ->find($categoryId);
-        if (!$category) {
-            return response()->json([
-                'status' => 'error',
-                'data' => [],
-            ], 404);
-        }
+        $category = $category->select(['id', 'name'])->first();
         return response()->json([
             'status' => 'success',
             'data' => $category,
@@ -61,21 +53,14 @@ class CategoryController extends Controller
 
     /**
      * @param UpdateCategoryRequest $request
-     * @param int $categoryId
+     * @param Category $category
      * @return JsonResponse
      */
-    public function update(UpdateCategoryRequest $request, int $categoryId):
+    public function update(UpdateCategoryRequest $request, Category $category):
     JsonResponse
     {
         $validated = $request->validated();
-        $category = Category::query()
-            ->find($categoryId);
-        if (!$category) {
-            return response()->json([
-                'status' => 'error',
-                'data' => [],
-            ], 404);
-        }
+
         $category->update($validated);
         return response()->json([
             'status' => 'success',
@@ -84,19 +69,11 @@ class CategoryController extends Controller
     }
 
     /**
-     * @param int $categoryId
+     * @param Category $category
      * @return JsonResponse
      */
-    public function destroy(int $categoryId): JsonResponse
+    public function destroy(Category $category): JsonResponse
     {
-        $category = Category::query()
-            ->find($categoryId);
-        if (!$category) {
-            return response()->json([
-                'status' => 'error',
-                'data' => [],
-            ], 404);
-        }
         $category->delete();
         return response()->json([
             'status' => 'success',
