@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 
@@ -18,10 +20,8 @@ class CategoryController extends Controller
             ->select(['id', 'name'])
             ->latest()
             ->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories,
-        ]);
+        return ApiResponse::success(CategoryResource::collection
+        ($categories), 'Categories retrieved successfully');
     }
 
     /**
@@ -30,11 +30,11 @@ class CategoryController extends Controller
      */
     public function show(Category $category): JsonResponse
     {
-        $category = $category->select(['id', 'name'])->first();
-        return response()->json([
-            'status' => 'success',
-            'data' => $category,
-        ]);
+        $category = $category->select(['id', 'name'])->getModel();
+        return ApiResponse::success(
+            new CategoryResource($category),
+            'Category retrieved successfully',
+        );
     }
 
     /**
@@ -43,12 +43,14 @@ class CategoryController extends Controller
      */
     public function store(StoreCategoryRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-        Category::create($validated);
-        return response()->json([
-            'status' => 'success',
-            'data' => [],
-        ]);
+        try {
+            $validated = $request->validated();
+            Category::create($validated);
+            return ApiResponse::success(null, 'Category created successfully',
+                201);
+        } catch (\Throwable $th) {
+            return ApiResponse::error($th->getMessage(), $th->getCode());
+        }
     }
 
     /**
@@ -59,13 +61,13 @@ class CategoryController extends Controller
     public function update(UpdateCategoryRequest $request, Category $category):
     JsonResponse
     {
-        $validated = $request->validated();
-
-        $category->update($validated);
-        return response()->json([
-            'status' => 'success',
-            'data' => [],
-        ]);
+        try {
+            $validated = $request->validated();
+            $category->update($validated);
+            return ApiResponse::success(null, 'Category updated successfully');
+        } catch (\Throwable $th) {
+            return ApiResponse::error($th->getMessage(), $th->getCode());
+        }
     }
 
     /**
@@ -75,10 +77,7 @@ class CategoryController extends Controller
     public function destroy(Category $category): JsonResponse
     {
         $category->delete();
-        return response()->json([
-            'status' => 'success',
-            'data' => [],
-        ]);
+        return ApiResponse::success(null, 'Category deleted successfully');
     }
 
     /**
@@ -88,14 +87,11 @@ class CategoryController extends Controller
     {
         $categories = Category::query()
             ->select(['id', 'name'])
-            ->with('posts:category_id,author_id,title,content')
+            ->with('posts')
             ->latest()
             ->get();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $categories,
-        ]);
+        return ApiResponse::success(CategoryResource::collection
+        ($categories), 'Categories retrieved successfully');
     }
 
 }

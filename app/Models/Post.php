@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Http\Resources\PostResource;
+use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[UseResource(PostResource::class)]
 class Post extends Model
 {
     protected $fillable = ['category_id', 'author_id', 'title', 'content', 'published_at'];
@@ -13,15 +16,12 @@ class Post extends Model
     protected $casts = [
         'published_at' => 'datetime',
     ];
-
-    protected $hidden = ['author_id', 'category_id', 'created_at', 'updated_at'];
-
     /**
      * @return BelongsTo
      */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(Author::class);
+        return $this->belongsTo(User::class);
     }
 
     /**

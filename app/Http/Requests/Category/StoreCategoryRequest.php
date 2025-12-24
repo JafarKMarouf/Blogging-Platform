@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Category;
 
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,6 +38,7 @@ class StoreCategoryRequest extends FormRequest
         return [
             'name.required' => 'The category name field is required.',
             'name.unique' => 'This category name is already taken.',
+            'name.string' => 'The category name must be a string.',
         ];
     }
 
@@ -46,9 +48,6 @@ class StoreCategoryRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator): mixed
     {
-        throw new HttpResponseException(response()->json([
-            'status' => 'error',
-            'errors' => $validator->errors()->all(),
-        ], 422));
+        throw new HttpResponseException(ApiResponse::validationError($validator));
     }
 }

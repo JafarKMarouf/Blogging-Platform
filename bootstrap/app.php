@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\ApiResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -18,31 +19,22 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
 
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
+    ->withExceptions(function (Exceptions $exceptions): \Illuminate\Http\JsonResponse {
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
-
                 $message = 'The requested route could not be found.';
                 if ($e->getPrevious() instanceof ModelNotFoundException) {
-                    $message = 'No query results for model.';
+                    $message = 'No results Found.';
                 }
-
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $message,
-                    'data' => [],
-                ], 404);
+                return ApiResponse::error($message, 404);
             }
         });
         $exceptions->render(function (QueryException $e, Request $request) {
             if ($request->is('api/*')) {
                 if ($e->getCode() === '23000') {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Cannot delete this record because it is referenced by other data.',
-                        'data' => [],
-                    ], 409);
+                    return ApiResponse::error('Cannot delete this record because it is referenced by other data.', 409);
                 }
             }
         });
+        return ApiResponse::error('', 500);
     })->create();

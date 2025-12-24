@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Models\Author;
 use App\Models\Category;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,10 +22,10 @@ class PostFactory extends Factory
         $title = fake()->sentence();
         return [
             'category_id' => Category::query()->inRandomOrder()->first()->id,
-            'author_id' => Author::query()->inRandomOrder()->first()->id,
+            'author_id' => User::query()->inRandomOrder()->first()->id,
             'title' => $title,
             'content' => fake()->paragraph(5),
-            'published_at' => fake()->optional()->dateTime()
+            'published_at' => fake()->dateTimeBetween('-1 year', \Illuminate\Support\now()),
         ];
     }
 }

@@ -2,30 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class PostController extends Controller
 {
-
     /**
      * @return JsonResponse
      */
     public function index(): JsonResponse
     {
         $posts = Post::query()
-            ->select(['id','title', 'content', 'category_id', 'author_id', 'published_at'])
-            ->with(['category:id,name', 'author:id,name'])
+            ->select(['id', 'title', 'content', 'published_at'])
             ->latest()
             ->get();
-        return response()->json([
-            'status' => 'success',
-            'data' => $posts,
-        ]);
+        return ApiResponse::success(
+            PostResource::collection($posts),
+            'Posts retrieved successfully',
+        );
     }
 
     /**
@@ -34,12 +32,13 @@ class PostController extends Controller
      */
     public function store(StorePostRequest $request): JsonResponse
     {
-        $validated = $request->validated();
-        Post::create($validated);
-        return response()->json([
-            'status' => 'success',
-            'data' => [],
-        ]);
+        try {
+            $validated = $request->validated();
+            Post::create($validated);
+            return ApiResponse::success(null, 'Post created successfully', 201);
+        } catch (\Throwable $th) {
+            return ApiResponse::error($th->getMessage(), $th->getCode());
+        }
     }
 
     /**
@@ -48,20 +47,13 @@ class PostController extends Controller
      */
     public function show(Post $post): JsonResponse
     {
-        $post = Post::query()
-            ->select(['id','title', 'content', 'category_id', 'author_id', 'published_at'])
-            ->with(['category:id,name', 'author:id,name'])
-            ->find($post->id);
-        if (!$post) {
-            return response()->json([
-                'status' => 'error',
-                'data' => [],
-            ], 404);
-        }
-        return response()->json([
-            'status' => 'success',
-            'data' => $post,
-        ]);
+        $post = $post->select(['id', 'title', 'content', 'category_id', 'author_id'])
+            ->with(['category', 'author'])
+            ->first();
+        return ApiResponse::success(
+            new PostResource($post),
+            'Post retrieved successfully',
+        );
     }
 
     /**
@@ -71,21 +63,14 @@ class PostController extends Controller
      */
     public function update(UpdatePostRequest $request, Post $post): JsonResponse
     {
-        $validated = $request->validated();
-        $post = Post::query()->find($post->id);
-        if (!$post) {
-            return response()->json([
-                'status' => 'error',
-                'data' => [],
-            ], 404);
+        try {
+            $validated = $request->validated();
+            $post->update($validated);
+            return ApiResponse::success(null, 'Post updated successfully');
+        } catch (\Throwable $th) {
+            return ApiResponse::error($th->getMessage(), $th->getCode());
         }
-        $post->update($validated);
-        return response()->json([
-            'status' => 'success',
-            'data' => [],
-        ]);
     }
-
 
     /**
      * @param Post $post
@@ -93,10 +78,11 @@ class PostController extends Controller
      */
     public function destroy(Post $post): JsonResponse
     {
-        $post->delete();
-        return response()->json([
-            'status' => 'success',
-            'data' => [],
-        ]);
+        try {
+            $post->delete();
+            return ApiResponse::success(null, 'Post deleted successfully');
+        } catch (\Throwable $th) {
+            return ApiResponse::error($th->getMessage(), $th->getCode());
+        }
     }
 }

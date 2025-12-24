@@ -16,7 +16,7 @@ return new class extends Migration {
                 ->constrained()
                 ->onDelete('restrict');
             $table->foreignId('author_id')
-                ->constrained()
+                ->constrained('users')
                 ->onDelete('cascade');
             $table->string('title');
             $table->text('content');

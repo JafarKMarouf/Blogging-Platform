@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Category;
 
+use App\Helpers\ApiResponse;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,7 +26,7 @@ class UpdateCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['nullable', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255', 'unique:categories,name'],
         ];
     }
 
@@ -35,9 +36,6 @@ class UpdateCategoryRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator): mixed
     {
-        throw new HttpResponseException(response()->json([
-            'status' => 'error',
-            'errors' => $validator->errors()->all(),
-        ], 422));
+        throw new HttpResponseException(ApiResponse::validationError($validator));
     }
 }
