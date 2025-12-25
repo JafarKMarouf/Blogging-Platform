@@ -1,12 +1,15 @@
 <?php
 
 use App\Helpers\ApiResponse;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
+use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -17,9 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-
+        $middleware->alias([
+            'abilities' => CheckAbilities::class,
+            'ability' => CheckForAnyAbility::class,
+        ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): \Illuminate\Http\JsonResponse {
+    ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
             if ($request->is('api/*') || $request->wantsJson()) {
                 $message = 'The requested route could not be found.';
@@ -36,5 +42,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
             }
         });
-        return ApiResponse::error('', 500);
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*') || $request->wantsJson()) {
+                return ApiResponse::error('Invalid token', 401);
+            }
+        });
+
+        $exceptions->render(function (Exception $e, Request $request) {
+            if ($request->is('api/*')) {
+                $message = config('app.debug') ? $e->getMessage() : 'Server Error';
+                Log::error($e->getCode());
+                return ApiResponse::error($message, $e->getCode());
+            }
+        });
     })->create();

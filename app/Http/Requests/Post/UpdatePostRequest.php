@@ -28,7 +28,6 @@ class UpdatePostRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'content' => ['nullable', 'string'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'author_id' => ['nullable', 'exists:users,id'],
         ];
     }
 
