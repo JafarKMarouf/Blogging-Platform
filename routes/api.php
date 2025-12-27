@@ -19,10 +19,16 @@ Route::prefix('auth')
         });
     });
 
+// public routes
+Route::apiResource('posts', PostController::class)
+    ->only(['index', 'show']);
+
+// protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('/category', CategoryController::class);
     Route::get('/category/posts/category', [CategoryController::class, 'getAllWithPosts']);
-    Route::apiResource('/posts', PostController::class);
+    Route::apiResource('/posts', PostController::class)
+        ->except(['index', 'show']);
     Route::get('/user/posts/me', [PostController::class, 'myPosts']);
 
     Route::controller(CommentController::class)->group(function () {

@@ -39,8 +39,8 @@ class StorePostRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'title.required' => 'The category title field is required.',
-            'content.required' => 'The category content field is required.',
+            'title.required' => 'The title field is required.',
+            'content.required' => 'The content field is required.',
             'category_id.required' => 'The category id field is required.',
         ];
     }
