@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use Database\Factories\PostFactory;
+use Database\Factories\CommentFactory;
 use Illuminate\Database\Seeder;
 
-class PostSeeder extends Seeder
+class CommentSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        PostFactory::new()->count(50)->create();
+        CommentFactory::new()->count(50)->create();
     }
 }
